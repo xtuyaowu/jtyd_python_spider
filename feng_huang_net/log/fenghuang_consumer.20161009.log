@@ -1,0 +1,2 @@
+2016-10-09 14:47:34 fh_consumer.py[line:48] main INFO list index out of range
+2016-10-09 21:35:08 fh_consumer.py[line:38] main INFO 队列空，休眠4小时

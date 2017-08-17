@@ -1,0 +1,12 @@
+2016-10-14 21:36:01 fh_consumer.py[line:85] main INFO expected string or buffer
+2016-10-14 21:36:12 fh_consumer.py[line:85] main INFO expected string or buffer
+2016-10-14 21:36:50 fh_consumer.py[line:85] main INFO expected string or buffer
+2016-10-14 22:53:33 fh_consumer.py[line:63] main INFO expected string or buffer
+2016-10-15 00:09:33 fh_consumer.py[line:86] main INFO expected string or buffer
+2016-10-15 00:11:29 fh_consumer.py[line:85] main INFO expected string or buffer
+2016-10-15 00:12:15 fh_consumer.py[line:85] main INFO expected string or buffer
+2016-10-15 00:14:58 fh_consumer.py[line:85] main INFO expected string or buffer
+2016-10-15 00:15:26 fh_consumer.py[line:85] main INFO expected string or buffer
+2016-10-15 00:42:02 fh_consumer.py[line:85] main INFO expected string or buffer
+2016-10-15 00:42:42 fh_consumer.py[line:85] main INFO expected string or buffer
+2016-10-15 01:15:18 fh_consumer.py[line:85] main INFO 'bool' object is not iterable
