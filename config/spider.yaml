@@ -29,17 +29,17 @@ cookie_expire_time: 23
 adver_timers: 10
 
 db:
-    host: 202.197.237.29
-    port: 3306
-    user: idtn
-    password: idtn123
-    db_name: jtyd_python_spider
-    db_type: mysql
+    host:
+    port:
+    user:
+    password:
+    db_name:
+    db_type:
 
 redis:
-    host: 202.197.237.29
-    port: 6479
-    password: gsgaf$2645Dwrw
+    host:
+    port:
+    password:
     cookies: 5                    # store and fetch cookies
     urls: 5                       # store fetched urls and results
     broker: 5                    # broker for celery

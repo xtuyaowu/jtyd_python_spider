@@ -1,7 +1,7 @@
 # coding:utf-8
 from urllib import parse as url_parse
 from logger.log import crawler
-from celery import Celery
+from apps.celery_init import celery
 from page_get.basic import get_page
 from config.conf import get_max_search_page
 from page_parse import search as parse_search
@@ -15,7 +15,7 @@ url = 'http://s.weibo.com/weibo/{}&scope=ori&suball=1&page={}'
 limit = get_max_search_page() + 1
 
 
-@Celery.task(ignore_result=True)
+@celery.task(ignore_result=True)
 def search_keyword(keyword, keyword_id):
     cur_page = 1
     encode_keyword = url_parse.quote(keyword)
@@ -40,8 +40,8 @@ def search_keyword(keyword, keyword_id):
                 insert_weibo_data(wb_data)
                 insert_keyword_wbid(keyword_id, wb_data.weibo_id)
                 # send task for crawling user info
-                Celery.send_task('celery_tasks.user.crawl_person_infos', args=(wb_data.uid,), queue='user_crawler',
-                              routing_key='for_user_info')
+                celery.send_task('celery_tasks.weibo.user.crawl_person_infos', args=(wb_data.uid,), queue='user_crawler',
+                                 routing_key='for_user_info')
 
         if 'page next S_txt1 S_line1' in search_page:
             cur_page += 1
@@ -50,9 +50,9 @@ def search_keyword(keyword, keyword_id):
             return
 
 
-@Celery.task(ignore_result=True)
+@celery.task(ignore_result=True)
 def excute_search_task():
     keywords = get_search_keywords()
     for each in keywords:
-        Celery.send_task('celery_tasks.search.search_keyword', args=(each[0], each[1]), queue='search_crawler',
-                      routing_key='for_search_info')
+        celery.send_task('celery_tasks.weibo.search.search_keyword', args=(each[0], each[1]), queue='search_crawler',
+                         routing_key='for_search_info')

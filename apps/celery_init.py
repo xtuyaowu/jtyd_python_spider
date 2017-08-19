@@ -25,8 +25,10 @@ def config_mongo(**kwargs):
     log.other.info("初始化mongo链接,pid:%s" % os.getpid())
 
 celery = Celery("jtyd_celery_task", broker = celery_config.CELERY_BROKER_URL)
-celery.config_from_object('celery_config')
+celery.config_from_object('config.celery_config')
 
+# 引入初始化
+from celery_tasks.weibo import comment,home,login,repost,search,user
 
 @celery.task()
 def start_timer_task():

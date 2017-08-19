@@ -27,12 +27,6 @@ class Config(object):
     DELECTEMAILSWITCH = False
     PLATFORM_IP = "127.0.0.1:8080"
 
-    # celery 配置
-    CELERY_BROKER_URL = 'redis://:password@ip:6479/1'
-    CELERY_RESULT_BACKEND = 'redis://:password@ip:6479/1'
-    # CELERY_BROKER_URL = "redis://localhost:6379/0"
-    # CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
-
 class Development(Config):
     #本机
     ELASTICSEARCH_HOST = "10.10.0.120"
@@ -63,7 +57,7 @@ class Production(Config):
     ELASTICSEARCH_HOST = "10.10.0.888"
     PROD_DB_URL = "mysql+pymysql://root:ddddd@10.10.0.1111:8066/test?charset=utf8"
     POOL_RECYCLE_S = 20 * 60
-    MONGODB_SETTINGS = {'db': 'database',
+    MONGODB_SETTINGS = {'db': ' ',
                         'host': '127.0.0.1',
                         'port': 27017,
                         'connect' : False}

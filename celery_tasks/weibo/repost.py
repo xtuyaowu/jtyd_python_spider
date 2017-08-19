@@ -1,7 +1,7 @@
 # -*-coding:utf-8 -*-
 from db import wb_data
 from db import weibo_repost
-from celery import Celery
+from apps.celery_init import celery
 from page_parse import repost
 from logger.log import crawler
 from db.redis_db import IdNames
@@ -13,7 +13,7 @@ from config.conf import get_max_repost_page
 base_url = 'http://weibo.com/aj/v6/mblog/info/big?ajwvr=6&id={}&page={}'
 
 
-@Celery.task
+@celery.task
 def crawl_repost_by_page(mid, page_num):
     cur_url = base_url.format(mid, page_num)
     html = get_page(cur_url, user_verify=False)
@@ -23,7 +23,7 @@ def crawl_repost_by_page(mid, page_num):
     return html, repost_datas
 
 
-@Celery.task(ignore_result=True)
+@celery.task(ignore_result=True)
 def crawl_repost_page(mid, uid):
     limit = get_max_repost_page() + 1
     first_repost_data = crawl_repost_by_page(mid, 1)
@@ -56,12 +56,12 @@ def crawl_repost_page(mid, uid):
     weibo_repost.save_reposts(repost_datas)
 
 
-@Celery.task(ignore_result=True)
+@celery.task(ignore_result=True)
 def excute_repost_task():
     # regard current weibo url as the original url, you can also analyse from the root url
     weibo_datas = wb_data.get_weibo_repost_not_crawled()
     crawler.info('There are {} repost urls have to be crawled'.format(len(weibo_datas)))
 
     for weibo_data in weibo_datas:
-        Celery.send_task('celery_tasks.repost.crawl_repost_page', args=(weibo_data.weibo_id, weibo_data.uid),
-                      queue='repost_crawler', routing_key='repost_info')
+        celery.send_task('celery_tasks.weibo.repost.crawl_repost_page', args=(weibo_data.weibo_id, weibo_data.uid),
+                         queue='repost_crawler', routing_key='repost_info')

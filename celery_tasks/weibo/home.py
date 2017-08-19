@@ -1,7 +1,7 @@
 # coding:utf-8
 import time
 from logger.log import crawler
-from celery import Celery
+from apps.celery_init import celery
 from page_parse.user import public
 from page_get.basic import get_page
 from db.wb_data import insert_weibo_datas
@@ -16,7 +16,7 @@ ajax_url = 'http://weibo.com/p/aj/v6/mblog/mbloglist?ajwvr=6&domain={}&pagebar={
            '&pre_page={}&__rnd={}'
 
 
-@Celery.task(ignore_result=True)
+@celery.task(ignore_result=True)
 def crawl_ajax_page(url):
     """
     返回值主要供第一次本地调用使用（获取总页数），网络调用忽略返回值
@@ -32,7 +32,7 @@ def crawl_ajax_page(url):
     return ajax_html
 
 
-@Celery.task(ignore_result=True)
+@celery.task(ignore_result=True)
 def crawl_weibo_datas(uid):
     limit = get_max_home_page()
     cur_page = 1
@@ -59,17 +59,17 @@ def crawl_weibo_datas(uid):
             limit = total_page
 
         cur_page += 1
-        app.send_task('celery_tasks.home.crawl_ajax_page', args=(ajax_url_0,), queue='ajax_home_crawler',
-                      routing_key='ajax_home_info')
+        celery.send_task('celery_tasks.weibo.home.crawl_ajax_page', args=(ajax_url_0,), queue='ajax_home_crawler',
+                         routing_key='ajax_home_info')
 
-        app.send_task('celery_tasks.home.crawl_ajax_page', args=(ajax_url_1,), queue='ajax_home_crawler',
-                      routing_key='ajax_home_info')
+        celery.send_task('celery_tasks.weibo.home.crawl_ajax_page', args=(ajax_url_1,), queue='ajax_home_crawler',
+                         routing_key='ajax_home_info')
 
 
-@Celery.task
+@celery.task
 def excute_home_task():
     # 这里的策略由自己指定，可以基于已有用户做主页抓取，也可以指定一些用户,我这里直接选的种子数据库中的uid
     id_objs = get_home_ids()
     for id_obj in id_objs:
-        app.send_task('celery_tasks.home.crawl_weibo_datas', args=(id_obj.uid,), queue='home_crawler',
-                      routing_key='home_info')
+        celery.send_task('celery_tasks.weibo.home.crawl_weibo_datas', args=(id_obj.uid,), queue='home_crawler',
+                         routing_key='home_info')

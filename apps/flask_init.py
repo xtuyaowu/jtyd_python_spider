@@ -9,7 +9,7 @@ from flask_mongoengine import MongoEngine
 app = Flask(__name__)
 env = Environments(app)
 
-env.from_object('config')
+env.from_object('config.flask_config')
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)) # os.path.abspath(os.path.dirname(__file__))
 file_handler = RotatingFileHandler(basedir+"/logs/logger_flask.log", encoding='utf-8')
 formatter = logging.Formatter("%(asctime)s\t%(levelname)s\t%(message)s")
