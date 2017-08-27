@@ -78,8 +78,11 @@ CELERY_QUEUES=(
 
         Queue('personal_adver', exchange=Exchange('personal_adver', type='direct'), routing_key='for_adver'),
 
-        Queue('start_timer_task', Exchange('start_timer_task'), routing_key='start_timer_task')
-    )
+        Queue('start_timer_task', Exchange('start_timer_task'), routing_key='start_timer_task'),
+
+        Queue('start_add_task', Exchange('start_add_task'), routing_key='start_add_task')
+
+)
 
 
 # 路由（哪个任务放入哪个队列）
@@ -91,6 +94,11 @@ CELERY_ROUTES = {
 
     'apps.celery_init.start_timer_task': {'queue': 'start_timer_task',
                                           'routing_key': 'start_timer_task'}
+
+,
+
+    'apps.celery_init.start_add_task': {'queue': 'start_add_task',
+                                          'routing_key': 'start_add_task'}
 }
 
 MONGODB_SETTINGS = {

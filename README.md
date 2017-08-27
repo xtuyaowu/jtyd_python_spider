@@ -42,8 +42,10 @@
     2）jtyd_spider.sql 脚本
 
 三、启动方式
-    1）安装环境 requirements.txt
-    2）配置数据库 mysql、mongdb、redies
-    3）运行脚本启动，参考：jtyd_spider_run.sh：启动命令集合
-       gunicorn -b :5000 -w 1 -t 120 jtyd_spider_run:app >> service.log 2>&1 &
-       nohup python -m celery worker -l INFO -c 5 -A apps.celery_init.celery -B &
+1、安装环境 requirements.txt
+
+2、配置数据库 mysql、mongdb、redies
+
+3、运行脚本启动，参考：jtyd_spider_run.sh：启动命令集合
+    gunicorn -b :5000 -w 1 -t 120 jtyd_spider_run:app >> service.log 2>&1 &
+    nohup python -m celery worker -l INFO -c 5 -A apps.celery_init.celery -B &
