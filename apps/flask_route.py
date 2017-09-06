@@ -7,11 +7,10 @@ import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from apps.flask_init import app, flask_celery
+from db.mongdb_data_store import DBStore
 from exceptions import errors
-from model.mongo_models import mail_conf
-from util.get_logger import get_logger
+from logger.log import other as logger
 
-logger = get_logger(__name__)
 
 chinaTz = pytz.timezone('Asia/Shanghai')
 
@@ -38,18 +37,20 @@ def get_arg(key, type_, is_mandatory=False):
             raise errors.BadArgumentError(key, value)
     return value
 
+
 def fetch_email_task():
 
-    mail_conf_list = mail_conf.objects()
+    mail_conf_list = DBStore.objects()
     for mail_conf_ in mail_conf_list:
         try:
             email_object_key = str(mail_conf_._id)
-            fetch_result = flask_celery.send_task("resume_fetch.mail_fetch_celery.start_spider_task",
+            fetch_result = flask_celery.send_task("apps.celery_init.start_add_task",
                                                   queue='start_spider_task',
                                                   args=(email_object_key, 100))
 
         except Exception as e:
             logger.error("调用celery执行邮件接收失败,%s.".format(traceback.format_exc()))
+
 
 def start_scheduler():
     scheduler = BackgroundScheduler()
@@ -61,6 +62,8 @@ def start_scheduler():
         scheduler.start()
     except (KeyboardInterrupt, SystemExit):
         scheduler.shutdown()
+
+
 
 @app.route("/", methods=["GET"])
 def evaluate_main():
@@ -74,7 +77,32 @@ def evaluate_main():
         })
 
 
+def jd_seckill_task():
+
+    mongdb_conn = DBStore.get_datastores()
+    mydb = mongdb_conn['jtyd']
+    for i in range(114895):
+        jd_users = mydb.Users.find({}).limit(100).skip(100 * i)
+        for jd_user in jd_users:
+            try:
+                email_object_key = str(jd_user._id)
+                fetch_result = flask_celery.send_task("resume_fetch.mail_fetch_celery.start_spider_task",
+                                                      queue='start_spider_task',
+                                                      args=(email_object_key, 100))
+
+            except Exception as e:
+                logger.error("调用celery执行京东秒杀任务,%s.".format(traceback.format_exc()))
+
+
+
+# 京东秒杀API
+@app.route("/jd_seckill_api", methods=["GET"])
+def jd_seckill_api():
+    jd_seckill_task()
+    return flask.jsonify({ "code": "Success","msg": "" })
+
+
 if __name__ == "__main__":
     from mongoengine import connect
-    connect("pkx", username="data_user", password="5ef14924e87b50c9", host="10.10.0.120")
+    connect("", username="", password="1", host="")
     fetch_email_task()

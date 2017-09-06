@@ -88,6 +88,7 @@ def task_failure_handler(sender=None, headers=None, body=None, **kwargs):
 
 # 引入初始化
 from celery_tasks.weibo import comment,home,login,repost,search,user
+from celery_tasks.jd_seckill import jd_seckill
 
 @celery.task()
 def start_timer_task():

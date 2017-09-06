@@ -80,7 +80,9 @@ CELERY_QUEUES=(
 
         Queue('start_timer_task', Exchange('start_timer_task'), routing_key='start_timer_task'),
 
-        Queue('start_add_task', Exchange('start_add_task'), routing_key='start_add_task')
+        Queue('start_add_task', Exchange('start_add_task'), routing_key='start_add_task'),
+
+        Queue('jd_seckill_task', Exchange('jd_seckill_task'), routing_key='jd_seckill_task')
 
 )
 
@@ -93,12 +95,13 @@ CELERY_ROUTES = {
                                                    'routing_key': 'login_task'},
 
     'apps.celery_init.start_timer_task': {'queue': 'start_timer_task',
-                                          'routing_key': 'start_timer_task'}
-
-,
+                                          'routing_key': 'start_timer_task'},
 
     'apps.celery_init.start_add_task': {'queue': 'start_add_task',
-                                          'routing_key': 'start_add_task'}
+                                          'routing_key': 'start_add_task'},
+
+    'celery_tasks.jd_seckill.jd_seckill.jd_seckill_task': {'queue': 'jd_seckill_task',
+                                        'routing_key': 'jd_seckill_task'}
 }
 
 MONGODB_SETTINGS = {
