@@ -80,18 +80,20 @@ def evaluate_main():
 def jd_seckill_task():
 
     mongdb_conn = DBStore.get_datastores()
-    mydb = mongdb_conn['jtyd']
-    for i in range(114895):
+    mydb = mongdb_conn['JD']
+    for i in range(100):
+        # todo 用户与地址策略需要调整，现在是用户、地址 做迪尔卡集
         jd_users = mydb.Users.find({}).limit(100).skip(100 * i)
         for jd_user in jd_users:
-            try:
-                email_object_key = str(jd_user._id)
-                fetch_result = flask_celery.send_task("resume_fetch.mail_fetch_celery.start_spider_task",
-                                                      queue='start_spider_task',
-                                                      args=(email_object_key, 100))
+            all_address = mydb.Address.find({})
+            for address in all_address:
+                try:
+                    fetch_result = flask_celery.send_task("celery_tasks.jd_seckill.jd_seckill.jd_seckill_task",
+                                                          queue='jd_seckill_task',
+                                                          args=(jd_user, address))
 
-            except Exception as e:
-                logger.error("调用celery执行京东秒杀任务,%s.".format(traceback.format_exc()))
+                except Exception as e:
+                    logger.error("调用celery执行京东秒杀任务,%s.".format(traceback.format_exc()))
 
 
 
