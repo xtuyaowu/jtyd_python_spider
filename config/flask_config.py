@@ -1,6 +1,8 @@
 
 import os
 from kombu import Queue, Exchange
+from config.celery_config import MONGODB_SETTINGS as mongdb_conn_setting
+
 
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)) # os.path.abspath(os.path.dirname(__file__))
 
@@ -33,13 +35,7 @@ class Development(Config):
 
     PROD_DB_URL = "mysql+pymysql://root:111111@111111111:3306/test?charset=utf8"
     POOL_RECYCLE_S = 20 * 60
-    MONGODB_SETTINGS = {
-                        'db': 'dddddd',
-                        'host': '1111111',
-                        'port': 27017,
-                        'username': '1',
-                        'password': '1'
-                        }
+    MONGODB_SETTINGS = mongdb_conn_setting
 
 class Test(Config):
     # 测试
