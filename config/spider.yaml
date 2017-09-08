@@ -29,12 +29,12 @@ cookie_expire_time: 23
 adver_timers: 10
 
 db:
-    host:
-    port:
-    user:
-    password:
-    db_name:
-    db_type:
+    host: 101.200.87.104
+    port: 3306
+    user: jtyd_new_miner
+    password: dfsfsfegs
+    db_name: jtyd_data
+    db_type: mysql
 
 redis:
     host:

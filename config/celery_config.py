@@ -2,8 +2,6 @@ from kombu import Queue, Exchange
 from datetime import timedelta
 
 # celery 配置
-CELERY_BROKER_URL = 'redis://:password@ip:port/2'
-CELERY_RESULT_BACKEND = 'redis://:password@ip:port/2'
 # CELERY_BROKER_URL = "redis://localhost:6379/0"
 # CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
 CELERY_TIMEZONE='Asia/Shanghai'
@@ -104,10 +102,13 @@ CELERY_ROUTES = {
                                         'routing_key': 'jd_seckill_task'}
 }
 
-MONGODB_SETTINGS = {
-                    'db': '',
-                    'host': '',
-                    'port': '',
-                    'username': '',
-                    'password': ''
+MONGODB_SETTINGS = "mongodb://admin:372c5a0f@119.23.19.162:27017/admin"
+
+mongoengine_SETTINGS = {
+                    # 'host': 'spider.zhxwd.cn',
+                    'host':'119.23.19.162',
+                    'port': 27017,
+                    'db': 'admin',
+                    'username': 'admin',
+                    'password': '372c5a0f'
                     }

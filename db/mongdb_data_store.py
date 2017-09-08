@@ -8,7 +8,7 @@ class DBStore(object):
 
     @staticmethod
     def _initialize():
-        mongdb_conn = MongoClient(**celery_config.MONGODB_SETTINGS)
+        DBStore.mongdb_conn = MongoClient(celery_config.MONGODB_SETTINGS)
 
     @staticmethod
     def get_datastores():

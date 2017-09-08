@@ -12,6 +12,7 @@ class task_monitor(mongoengine.Document):
     task_prerun_args =  mongoengine.ListField()
 
     celery_stask_status = mongoengine.IntField() #
+    seckill_result = mongoengine.StringField()
 
     create_time = mongoengine.DateTimeField()
     update_time = mongoengine.DateTimeField(default = None)

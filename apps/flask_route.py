@@ -1,7 +1,7 @@
 import datetime as dt
 import json
 import traceback
-
+import base64
 import flask
 import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -10,7 +10,7 @@ from apps.flask_init import app, flask_celery
 from db.mongdb_data_store import DBStore
 from exceptions import errors
 from logger.log import other as logger
-
+from utils.util_cls import DateEncoder
 
 chinaTz = pytz.timezone('Asia/Shanghai')
 
@@ -85,14 +85,32 @@ def jd_seckill_task():
         # todo 用户与地址策略需要调整，现在是用户、地址 做迪尔卡集
         jd_users = mydb.Users.find({}).limit(100).skip(100 * i)
         for jd_user in jd_users:
+            jd_user_dict = {}
+            if jd_user['cookies']:
+                jd_user_dict["_id"] = str(jd_user["_id"])
+                jd_user_dict["password"] = jd_user["password"]
+                cookies_base = base64.b64decode(jd_user["cookies"])
+                jd_user_dict["cookies"] = jd_user["cookies"].decode()
+                jd_user_dict["last_refresh"] = jd_user["last_refresh"]
+                jd_user_dict["last_pool"] = jd_user["last_pool"]
+                jd_user_dict["alive"] = jd_user["alive"]
+                jd_user_dict["username"] = jd_user["username"]
+                jd_user_dict["created_time"]= jd_user["created_time"]
+                jd_user_dict["eid"]= jd_user["eid"]
+                jd_user_dict["fp"]= jd_user["fp"]
+            else:
+                continue
+
             all_address = mydb.Address.find({})
             for address in all_address:
                 try:
+                    address_string = json.dumps(address, cls=DateEncoder)
                     fetch_result = flask_celery.send_task("celery_tasks.jd_seckill.jd_seckill.jd_seckill_task",
                                                           queue='jd_seckill_task',
-                                                          args=(jd_user, address))
+                                                          args=(json.dumps(jd_user_dict), address_string))
 
                 except Exception as e:
+                    print(traceback.format_exc())
                     logger.error("调用celery执行京东秒杀任务,%s.".format(traceback.format_exc()))
 
 

@@ -39,7 +39,7 @@ import apps.flask_route
 def task_before_sent_handler(sender=None, headers=None, body=None, **kwargs):
     # information about task are located in headers for task messages
     # using the task protocol version 2.
-    mongoengine.connect(**celery_config.MONGODB_SETTINGS)
+    mongoengine.connect(**celery_config.mongoengine_SETTINGS)
     task_name = sender
     args = headers.get('argsrepr')
     task_id = headers.get('id')
@@ -55,7 +55,7 @@ def task_before_sent_handler(sender=None, headers=None, body=None, **kwargs):
 
 @task_prerun.connect()
 def task_prerun_handler(task_id = None, args = None, **kwargs):
-    mongoengine.connect(**celery_config.MONGODB_SETTINGS)
+    mongoengine.connect(**celery_config.mongoengine_SETTINGS)
     #information about task are located in headers for task messages
     # using the task protocol version 2.
     print("task_prerun_handler:" + str(task_id))
@@ -69,7 +69,7 @@ def task_prerun_handler(task_id = None, args = None, **kwargs):
 def task_success_handler(sender=None, headers=None, body=None, **kwargs):
     # information about task are located in headers for task messages
     # using the task protocol version 2.
-    mongoengine.connect(**celery_config.MONGODB_SETTINGS)
+    mongoengine.connect(**celery_config.mongoengine_SETTINGS)
     task_id = sender.request.get('id')
     print("task_success_handler:" + str(task_id))
     task_monitor_ob = task_monitor.objects(task_id= task_id).first()
@@ -82,7 +82,7 @@ def task_success_handler(sender=None, headers=None, body=None, **kwargs):
 def task_failure_handler(sender=None, headers=None, body=None, **kwargs):
     # information about task are located in headers for task messages
     # using the task protocol version 2.
-    mongoengine.connect(**celery_config.MONGODB_SETTINGS)
+    mongoengine.connect(**celery_config.mongoengine_SETTINGS)
     task_id = sender.request.get('id')
     task_monitor_ob = task_monitor.objects(task_id= task_id).first()
     task_monitor_ob.celery_stask_status = 6

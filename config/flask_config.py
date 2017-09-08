@@ -1,7 +1,7 @@
 
 import os
 from kombu import Queue, Exchange
-from config.celery_config import MONGODB_SETTINGS as mongdb_conn_setting
+from config.celery_config import mongoengine_SETTINGS
 
 
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)) # os.path.abspath(os.path.dirname(__file__))
@@ -31,29 +31,8 @@ class Config(object):
 
 class Development(Config):
     #本机
-    ELASTICSEARCH_HOST = "10.10.0.120"
+    ELASTICSEARCH_HOST = "10.10.0.10"
 
     PROD_DB_URL = "mysql+pymysql://root:111111@111111111:3306/test?charset=utf8"
     POOL_RECYCLE_S = 20 * 60
-    MONGODB_SETTINGS = mongdb_conn_setting
-
-class Test(Config):
-    # 测试
-    #192.168.200.13
-    ELASTICSEARCH_HOST = "10.10.0.120"
-    PROD_DB_URL = "mysql+pymysql://root:dddd@127.0.0.1:3306/dddd?charset=utf8"
-    POOL_RECYCLE_S = 20 * 60
-    MONGODB_SETTINGS = {'db': 'ddd',
-                        'host': '127.0.0.111',
-                        'port': 27017,
-                        'connect': False}
-
-class Production(Config):
-    #正式
-    ELASTICSEARCH_HOST = "10.10.0.888"
-    PROD_DB_URL = "mysql+pymysql://root:ddddd@10.10.0.1111:8066/test?charset=utf8"
-    POOL_RECYCLE_S = 20 * 60
-    MONGODB_SETTINGS = {'db': ' ',
-                        'host': '127.0.0.1',
-                        'port': 27017,
-                        'connect' : False}
+    MONGODB_SETTINGS = mongoengine_SETTINGS

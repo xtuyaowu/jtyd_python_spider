@@ -1,5 +1,8 @@
+import json
 import threading
 import sys
+import datetime as dt
+from bson import ObjectId
 
 
 class KThread(threading.Thread):
@@ -58,3 +61,15 @@ class KThread(threading.Thread):
 
 class Timeout(Exception):
     """function run timeout"""
+
+
+class DateEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, dt.datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
+        elif isinstance(obj, dt.date):
+            return obj.strftime("%Y-%m-%d")
+        elif isinstance(obj, ObjectId):
+            return str(obj)
+        else:
+            return json.JSONEncoder.default(self, obj)
