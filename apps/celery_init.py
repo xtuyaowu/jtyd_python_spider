@@ -9,6 +9,7 @@ from datetime import datetime
 import pytz
 from db.mongdb_data_store import DBStore
 from db.mongo_models import task_monitor
+from dispatch.jd_seckill.proxy_pool import ProxyStore
 from logger import log
 
 from config import celery_config
@@ -25,6 +26,7 @@ def _init_celery(**kwargs):
 def config_mongo(**kwargs):
     # mongoengine.connect(**celery_config.MONGODB_SETTINGS)
     DBStore._initialize()
+    ProxyStore._initialize()
     log.other.info("初始化mongo链接,pid:%s" % os.getpid())
 
 celery = Celery("jtyd_celery_task", broker = celery_config.CELERY_BROKER_URL)

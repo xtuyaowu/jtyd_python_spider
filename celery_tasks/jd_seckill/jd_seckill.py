@@ -7,6 +7,7 @@ import requests
 from config.conf import get_timeout, get_crawl_interal, get_excp_interal, get_max_retries, get_adver_timers
 from db.mongo_models import task_monitor
 from decorators.decorator import timeout_decorator, timeout
+from dispatch.jd_seckill.proxy_pool import ProxyStore, session_timeout
 from logger.log import crawler
 from utils.headers import headers, personal_message_headers
 from datetime import datetime as dt, datetime
@@ -26,6 +27,11 @@ adver_timers = get_adver_timers()
 def send_jd_seckill_task(jd_user_string, address_string, task_id):
     """
     """
+    Ppool = ProxyStore.get_proxyPoolstores()
+    s = requests.session()
+    s.timeout = session_timeout
+    s.proxies = Ppool.getProxy()
+
     jd_user_json = json.loads(jd_user_string)
     address_json = json.loads(address_string)
     cookies_encode = jd_user_json['cookies'].encode()
@@ -46,7 +52,7 @@ def send_jd_seckill_task(jd_user_string, address_string, task_id):
     celery_stask_status = 7
     try:
         # 第一次提交获取地址
-        resp = requests.get('https://marathon.jd.com/async/getUsualAddressList.action?skuId=4957824', headers=headers,
+        resp = s.get('https://marathon.jd.com/async/getUsualAddressList.action?skuId=4957824', headers=headers,
                             cookies=cookies, timeout=time_out, verify=False)
 
         # [{
@@ -100,7 +106,7 @@ def send_jd_seckill_task(jd_user_string, address_string, task_id):
                 return None
 
         # todo 秒杀 参数需要确认
-        resp = requests.post('https://marathon.jd.com/seckill/submitOrder.action?skuId=4957824&vid= HTTP/1.1',
+        resp = s.post('https://marathon.jd.com/seckill/submitOrder.action?skuId=4957824&vid= HTTP/1.1',
                       data={'orderParam.name':address_dict['name'],
                             'orderParam.addressDetail':address_dict['addressDetail'],
                             'orderParam.mobile':address_dict['mobileWithXing'],

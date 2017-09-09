@@ -8,6 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from apps.flask_init import app, flask_celery
 from db.mongdb_data_store import DBStore
+from dispatch.jd_seckill.main import jd_seckill_dispatch
 from exceptions import errors
 from logger.log import other as logger
 from utils.util_cls import DateEncoder
@@ -121,6 +122,12 @@ def jd_seckill_api():
     jd_seckill_task()
     return flask.jsonify({ "code": "Success","msg": "" })
 
+
+# 京东秒杀用户处理API
+@app.route("/jd_seckill_user_deal_api", methods=["GET"])
+def jd_seckill_user_deal_api():
+    result = jd_seckill_dispatch().jd_seckill_deal_user()
+    return flask.jsonify(result)
 
 if __name__ == "__main__":
     from mongoengine import connect
