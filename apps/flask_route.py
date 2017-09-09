@@ -108,7 +108,7 @@ def jd_seckill_task():
                     address_string = json.dumps(address, cls=DateEncoder)
                     fetch_result = flask_celery.send_task("celery_tasks.jd_seckill.jd_seckill.jd_seckill_task",
                                                           queue='jd_seckill_task',
-                                                          args=(json.dumps(jd_user_dict), address_string))
+                                                          args=(json.dumps(jd_user_dict), address_string, 4957824))
 
                 except Exception as e:
                     print(traceback.format_exc())

@@ -24,7 +24,7 @@ adver_timers = get_adver_timers()
 
 #@timeout(200)
 #@timeout_decorator
-def send_jd_seckill_task(jd_user_string, address_string, task_id):
+def send_jd_seckill_task(jd_user_string, address_string, task_id, skuId):
     """
     """
     Ppool = ProxyStore.get_proxyPoolstores()
@@ -52,7 +52,7 @@ def send_jd_seckill_task(jd_user_string, address_string, task_id):
     celery_stask_status = 7
     try:
         # 第一次提交获取地址
-        resp = s.get('https://marathon.jd.com/async/getUsualAddressList.action?skuId=4957824', headers=headers,
+        resp = s.get('https://marathon.jd.com/async/getUsualAddressList.action?skuId='+str(skuId), headers=headers,
                             cookies=cookies, timeout=time_out, verify=False)
 
         # [{
@@ -106,7 +106,7 @@ def send_jd_seckill_task(jd_user_string, address_string, task_id):
                 return None
 
         # todo 秒杀 参数需要确认
-        resp = s.post('https://marathon.jd.com/seckill/submitOrder.action?skuId=4957824&vid= HTTP/1.1',
+        resp = s.post('https://marathon.jd.com/seckill/submitOrder.action?skuId='+str(skuId)+'&vid= HTTP/1.1',
                       data={'orderParam.name':address_dict['name'],
                             'orderParam.addressDetail':address_dict['addressDetail'],
                             'orderParam.mobile':address_dict['mobileWithXing'],
@@ -121,8 +121,8 @@ def send_jd_seckill_task(jd_user_string, address_string, task_id):
                             'orderParam.invoiceContent':1,
                             'orderParam.invoiceCompanyName':'',
                             'orderParam.invoiceTaxpayerNO':'',
-                            'orderParam.usualAddressId':138356479,
-                            'skuId':4957824,
+                            'orderParam.usualAddressId':address_dict['id'],
+                            'skuId':skuId,
                             'num':1,
                             'orderParam.provinceName':address_dict['provinceName'],
                             'orderParam.cityName':address_dict['cityName'],
@@ -160,6 +160,6 @@ def save_task_monitor(task_id, celery_stask_status, seckill_result):
     task_monitor_ob.save()
 
 @celery.task(bind=True)
-def jd_seckill_task(self, jd_user, address):
+def jd_seckill_task(self, jd_user, address, skuId):
     task_id = self.request.id
-    send_jd_seckill_task(jd_user, address, task_id)
+    send_jd_seckill_task(jd_user, address, task_id, skuId)
