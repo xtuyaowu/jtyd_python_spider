@@ -46,7 +46,6 @@ class jd_seckill_dispatch:
         # 保存用户
         user = self.insertUsers(username, password)
 
-        self.Ppool.refreshpool()
         # 用户登录
         lg = class_login.Login()
         lret = lg.login(username, password, self.Ppool.getProxy())
