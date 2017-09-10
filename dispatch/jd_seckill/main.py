@@ -1,3 +1,4 @@
+from db.mongdb_data_store import DBStore
 from dispatch.jd_seckill import class_logger, class_MongoDB
 from dispatch.jd_seckill import class_consign
 from dispatch.jd_seckill import class_login
@@ -12,7 +13,7 @@ from dispatch.jd_seckill.proxy_pool import ProxyStore
 
 class jd_seckill_dispatch:
 
-    def __init__(self):
+    def __init__(self, ppool):
         self.dbc = class_MongoDB.MongoClient(uri, class_logger.getLogger('MongoDB_Users'), 'JD')
         self.dbc.setUnique('Users', 'username')
         cl = class_logger
@@ -20,7 +21,7 @@ class jd_seckill_dispatch:
         self.logger = cl.getLogger('Class_Login')
 
         # 连接池
-        self.Ppool = ProxyStore.get_proxyPoolstores()
+        self.Ppool = ppool
 
     def insertUsers(self, username, password):
         i = {
@@ -33,7 +34,8 @@ class jd_seckill_dispatch:
             "created_time": time.time(),
             "alive": 1,
             "eid":"",
-            "fp":""
+            "fp":"",
+            "status":0
         }
         if self.dbc.isexisted('Users', {"username": i['username']}) == True:
             # self.logger.info('Unable to insert User, User existed')
@@ -42,7 +44,30 @@ class jd_seckill_dispatch:
             self.dbc.insert_one('Users', i)
             return i
 
-    def jd_seckill_deal_user(self, username='13481316814', password='qweasd789'):
+    def jd_user_login(self, username, password):
+        # 保存用户
+        user = self.insertUsers(username, password)
+
+        # 用户登录
+        lg = class_login.Login()
+        lret = lg.login(username, password, self.Ppool.getProxy())
+
+        if lret['state'] == 200:
+            user['eid'] = lret['eid']
+            user['fp'] = lret['fp']
+            user['last_refresh'] = time.time()
+            user['cookies'] = lret['cookies']
+            self.dbc.update('Users',{'username': user['username']}, user)
+            self.dbc.update('Users', {'username': user['username']}, {'status': 4})
+            self.logger.info('登录成功，username：'+username)
+        else:
+            user['alive'] = 0
+            self.dbc.update('Users', {'username': user['username']}, user)
+            self.logger.info('登录失败，username：' + username)
+            self.dbc.update('Users', {'username': user['username']}, {'status': 2})
+            return {"code": "Fail", "msg": '登录失败，username：' + username}
+
+    def jd_seckill_deal_user(self, username, password, skuid):
         # 保存用户
         user = self.insertUsers(username, password)
 
@@ -61,6 +86,7 @@ class jd_seckill_dispatch:
             user['alive'] = 0
             self.dbc.update('Users', {'username': user['username']}, user)
             self.logger.info('登录失败，username：' + username)
+            self.dbc.update('Users', {'username': user['username']}, {'status': 2})
             return {"code": "Fail", "msg": '登录失败，username：' + username}
 
         Cookies = base64.b64decode(lret['cookies']).decode()
@@ -73,6 +99,7 @@ class jd_seckill_dispatch:
         else:
             self.dbc.update('Users', {'username': user['username']}, {'last_refresh': 0})
             self.logger.info('更新失败，username：' + username)
+            self.dbc.update('Users', {'username': user['username']}, {'status': 3})
             return {"code": "Fail", "msg": '更新失败，username：' + username}
 
         # 提交收获地址
@@ -90,11 +117,11 @@ class jd_seckill_dispatch:
         print(myPresell)
         self.logger.info(myPresell)
 
-        psinfo = ps.goPresellInfo(Cookies,'5369028', self.Ppool.getProxy())
+        psinfo = ps.goPresellInfo(Cookies, skuid, self.Ppool.getProxy())
         print(psinfo)
         self.logger.info(psinfo)
 
-        goPresell = ps.goPresell(Cookies,'5369028','https:' + psinfo['url'], self.Ppool.getProxy())
+        goPresell = ps.goPresell(Cookies, skuid,'https:' + psinfo['url'], self.Ppool.getProxy())
         print(goPresell)
         self.logger.info(goPresell)
 
@@ -102,4 +129,9 @@ class jd_seckill_dispatch:
         print(getMyPresell)
         self.logger.info(getMyPresell)
 
+        self.dbc.update('Users', {'username': user['username']}, {'status': 1})
+
         return {"code": "Success", "msg": "抢购用户初始化成功"}
+
+
+

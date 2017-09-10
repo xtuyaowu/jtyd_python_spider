@@ -24,7 +24,7 @@ def _init_celery(**kwargs):
 
 @worker_process_init.connect()
 def config_mongo(**kwargs):
-    # mongoengine.connect(**celery_config.MONGODB_SETTINGS)
+    mongoengine.connect(**celery_config.mongoengine_SETTINGS)
     DBStore._initialize()
     ProxyStore._initialize()
     log.other.info("初始化mongo链接,pid:%s" % os.getpid())

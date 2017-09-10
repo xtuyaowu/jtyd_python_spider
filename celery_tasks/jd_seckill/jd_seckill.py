@@ -14,6 +14,8 @@ from datetime import datetime as dt, datetime
 import pytz
 import base64
 from http.cookies import SimpleCookie
+from config.celery_config import MONGODB_SETTINGS as uri
+from dispatch.jd_seckill import class_logger, class_MongoDB
 
 time_out = get_timeout()
 interal = get_crawl_interal()
@@ -145,6 +147,10 @@ def send_jd_seckill_task(jd_user_string, address_string, task_id, skuId):
         print(e.format_exc())
         crawler.warning('excepitons happens when task_id {}，specific infos are {}'.format(task_id, e))
         time.sleep(excp_interal)
+
+    dbc = class_MongoDB.MongoClient(uri, class_logger.getLogger('MongoDB_Users'), 'JD')
+    dbc.setUnique('Users', 'username')
+    dbc.update('Users', {'username': jd_user_json['username']}, {'status': 2})
 
     save_task_monitor(task_id, celery_stask_status, resp.text)
     return ''

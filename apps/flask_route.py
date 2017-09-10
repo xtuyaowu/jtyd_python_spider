@@ -12,6 +12,8 @@ from dispatch.jd_seckill.main import jd_seckill_dispatch
 from exceptions import errors
 from logger.log import other as logger
 from utils.util_cls import DateEncoder
+from dispatch.jd_seckill.proxy_pool import ProxyStore
+
 
 chinaTz = pytz.timezone('Asia/Shanghai')
 
@@ -78,7 +80,7 @@ def evaluate_main():
         })
 
 
-def jd_seckill_task():
+def jd_seckill_task(skuId):
 
     mongdb_conn = DBStore.get_datastores()
     mydb = mongdb_conn['JD']
@@ -108,28 +110,29 @@ def jd_seckill_task():
                     address_string = json.dumps(address, cls=DateEncoder)
                     fetch_result = flask_celery.send_task("celery_tasks.jd_seckill.jd_seckill.jd_seckill_task",
                                                           queue='jd_seckill_task',
-                                                          args=(json.dumps(jd_user_dict), address_string, 4957824))
+                                                          args=(json.dumps(jd_user_dict), address_string, skuId))
 
                 except Exception as e:
                     print(traceback.format_exc())
                     logger.error("调用celery执行京东秒杀任务,%s.".format(traceback.format_exc()))
 
 
-
 # 京东秒杀API
 @app.route("/jd_seckill_api", methods=["GET"])
 def jd_seckill_api():
-    jd_seckill_task()
+    jd_seckill_task(4099139)
     return flask.jsonify({ "code": "Success","msg": "" })
 
 
 # 京东秒杀用户处理API
 @app.route("/jd_seckill_user_deal_api", methods=["GET"])
 def jd_seckill_user_deal_api():
-    result = jd_seckill_dispatch().jd_seckill_deal_user()
+    UserList = {
+        "15635467544": "qweasd789",
+    }
+    ppool = ProxyStore.get_proxyPoolstores()
+    for k, v in UserList.items():
+        result = jd_seckill_dispatch(ppool).jd_seckill_deal_user(k, v, 4099139)
     return flask.jsonify(result)
 
-if __name__ == "__main__":
-    from mongoengine import connect
-    connect("", username="", password="1", host="")
-    fetch_email_task()
+
