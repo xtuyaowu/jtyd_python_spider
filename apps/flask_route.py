@@ -84,6 +84,7 @@ def jd_seckill_task(skuId):
 
     mongdb_conn = DBStore.get_datastores()
     mydb = mongdb_conn['JD']
+    ppool = ProxyStore.get_proxyPoolstores()
     for i in range(100):
         # todo 用户与地址策略需要调整，现在是用户、地址 做迪尔卡集
         jd_users = mydb.Users.find({}).limit(100).skip(100 * i)
@@ -110,7 +111,7 @@ def jd_seckill_task(skuId):
                     address_string = json.dumps(address, cls=DateEncoder)
                     fetch_result = flask_celery.send_task("celery_tasks.jd_seckill.jd_seckill.jd_seckill_task",
                                                           queue='jd_seckill_task',
-                                                          args=(json.dumps(jd_user_dict), address_string, skuId))
+                                                          args=(json.dumps(jd_user_dict), address_string, skuId, ppool.getProxy()))
 
                 except Exception as e:
                     print(traceback.format_exc())
@@ -124,15 +125,21 @@ def jd_seckill_api():
     return flask.jsonify({ "code": "Success","msg": "" })
 
 
-# 京东秒杀用户处理API
+# 京东秒杀预约API
 @app.route("/jd_seckill_user_deal_api", methods=["GET"])
 def jd_seckill_user_deal_api():
-    UserList = {
-        "15635467544": "qweasd789",
-    }
+
+    status = get_arg("status", int, True)
     ppool = ProxyStore.get_proxyPoolstores()
-    for k, v in UserList.items():
-        result = jd_seckill_dispatch(ppool).jd_seckill_deal_user(k, v, 4099139)
-    return flask.jsonify(result)
+    mongdb_conn = DBStore.get_datastores()
+    mydb = mongdb_conn['JD']
+
+    jd_users = mydb.Users.find({"status": status})
+    for jd_user in jd_users:
+        fetch_result = flask_celery.send_task("celery_tasks.jd_seckill.jd_seckill.jd_seckill_presell",
+                                              queue='jd_seckill_presell',
+                                              args=(jd_user["username"], jd_user["password"], 4099139, ppool.getProxy()))
+
+    return flask.jsonify({ "code": "Success","msg": "is runing" })
 
 

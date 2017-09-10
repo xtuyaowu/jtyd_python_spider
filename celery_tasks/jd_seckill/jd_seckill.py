@@ -5,12 +5,13 @@ from apps.celery_init import celery
 import time
 import requests
 from config.conf import get_timeout, get_crawl_interal, get_excp_interal, get_max_retries, get_adver_timers
+from db.mongdb_data_store import DBStore
 from db.mongo_models import task_monitor
-from decorators.decorator import timeout_decorator, timeout
+from dispatch.jd_seckill.main import jd_seckill_dispatch
 from dispatch.jd_seckill.proxy_pool import ProxyStore, session_timeout
 from logger.log import crawler
 from utils.headers import headers, personal_message_headers
-from datetime import datetime as dt, datetime
+from datetime import datetime
 import pytz
 import base64
 from http.cookies import SimpleCookie
@@ -23,16 +24,17 @@ max_retries = get_max_retries()
 excp_interal = get_excp_interal()
 adver_timers = get_adver_timers()
 
+cl = class_logger
+cl.init()
 
 #@timeout(200)
 #@timeout_decorator
-def send_jd_seckill_task(jd_user_string, address_string, task_id, skuId):
+def send_jd_seckill_task(jd_user_string, address_string, task_id, skuId, netproxy):
     """
     """
-    Ppool = ProxyStore.get_proxyPoolstores()
     s = requests.session()
     s.timeout = session_timeout
-    s.proxies = Ppool.getProxy()
+    s.proxies = netproxy
 
     jd_user_json = json.loads(jd_user_string)
     address_json = json.loads(address_string)
@@ -166,6 +168,39 @@ def save_task_monitor(task_id, celery_stask_status, seckill_result):
     task_monitor_ob.save()
 
 @celery.task(bind=True)
-def jd_seckill_task(self, jd_user, address, skuId):
+def jd_seckill_task(self, jd_user, address, skuId, netproxy):
     task_id = self.request.id
-    send_jd_seckill_task(jd_user, address, task_id, skuId)
+    logger = cl.getLogger('jd_seckill_task')
+    logger.info('秒射任务开始，task_id：' + task_id)
+    send_jd_seckill_task(jd_user, address, task_id, skuId, netproxy)
+
+
+@celery.task(bind=True)
+def jd_seckill_presell(self, username, password, skuid, ppool):
+    task_id = self.request.id
+    logger = cl.getLogger('jd_seckill_presell')
+    logger.info('预约任务开始，task_id：' + task_id)
+    result = jd_seckill_dispatch().jd_seckill_deal_user(username, password, skuid, ppool)
+
+
+@celery.task(bind=True)
+def jd_seckill_timer_relogin(self):
+    task_id = self.request.id
+
+    logger = cl.getLogger('jd_seckill_timer_relogin')
+    logger.info('重新登录任务开始，task_id：' + task_id)
+
+    ppool = ProxyStore.get_proxyPoolstores()
+    mongdb_conn = DBStore.get_datastores()
+    mydb = mongdb_conn['JD']
+    jd_users = mydb.Users.find({"status": 1})
+    for jd_user in jd_users:
+        fetch_result = celery.send_task("celery_tasks.jd_seckill.jd_seckill.jd_seckill_relogin_task",
+                                              queue='jd_seckill_presell',
+                                              args=(jd_user["username"], jd_user["password"], 4099139, ppool.getProxy()))
+
+
+@celery.task(bind=True)
+def jd_seckill_relogin_task(self, username, password, ppool):
+    task_id = self.request.id
+    result = jd_seckill_dispatch().jd_user_login(username, password, ppool)

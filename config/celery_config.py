@@ -12,49 +12,13 @@ CELERY_ACCEPT_CONTENT=['json']
 CELERY_TASK_SERIALIZER='json'
 CELERY_RESULT_SERIALIZER='json'
 
-# CELERYBEAT_SCHEDULE={
-#         'login_task': {
-#             'task': 'celery_tasks.weibo.login.excute_login_task',
-#             'schedule': timedelta(hours=20),
-#             'options': {'queue': 'login_queue', 'routing_key': 'for_login'}
-#         },
-#         'user_task': {
-#             'task': 'celery_tasks.weibo.user.excute_user_task',
-#             'schedule': timedelta(minutes=3),
-#             'options': {'queue': 'user_crawler', 'routing_key': 'for_user_info'}
-#         },
-#         'search_task': {
-#             'task': 'celery_tasks.weibo.search.excute_search_task',
-#             'schedule': timedelta(hours=2),
-#             'options': {'queue': 'search_crawler', 'routing_key': 'for_search_info'}
-#         },
-#         'home_task': {
-#             'task': 'celery_tasks.weibo.home.excute_home_task',
-#             'schedule': timedelta(hours=10),
-#             'options': {'queue': 'home_crawler', 'routing_key': 'home_info'}
-#         },
-#         'comment_task': {
-#             'task': 'celery_tasks.weibo.comment.excute_comment_task',
-#             'schedule': timedelta(hours=10),
-#             'options': {'queue': 'comment_crawler', 'routing_key': 'comment_info'}
-#         },
-#         'repost_task': {
-#             'task': 'celery_tasks.weibo.repost.excute_repost_task',
-#             'schedule': timedelta(hours=10),
-#             'options': {'queue': 'repost_crawler', 'routing_key': 'repost_info'}
-#         },
-#         'personal_adver': {
-#             'task': 'celery_tasks.weibo.user.excute_personal_adver',
-#             'schedule': timedelta(minutes=3),
-#             'options': {'queue': 'personal_adver', 'routing_key': 'for_adver'}
-#         },
-#
-#         'timer_task': {
-#             'task': 'apps.celery_init.start_timer_task',
-#             'schedule': timedelta(minutes=10),
-#             'options': {'queue': 'start_timer_task', 'routing_key': 'start_timer_task'}
-#         },
-#     }
+CELERYBEAT_SCHEDULE={
+        'login_task': {
+            'task': 'celery_tasks.jd_seckill.jd_seckill.jd_seckill_timer_relogin',
+            'schedule': timedelta(minutes = 10),
+            'options': {'queue': 'jd_seckill_timer_relogin', 'routing_key': 'jd_seckill_timer_relogin'}
+        },
+    }
 
 # 配置队列（settings.py）
 CELERY_QUEUES=(
@@ -82,8 +46,10 @@ CELERY_QUEUES=(
 
         Queue('start_add_task', Exchange('start_add_task'), routing_key='start_add_task'),
 
-        Queue('jd_seckill_task', Exchange('jd_seckill_task'), routing_key='jd_seckill_task')
-
+        Queue('jd_seckill_task', Exchange('jd_seckill_task'), routing_key='jd_seckill_task'),
+        Queue('jd_seckill_presell', Exchange('jd_seckill_presell'), routing_key='jd_seckill_presell'),
+        Queue('jd_seckill_timer_relogin', Exchange('jd_seckill_timer_relogin'), routing_key='jd_seckill_timer_relogin'),
+        Queue('jd_seckill_relogin_task', Exchange('jd_seckill_relogin_task'), routing_key='jd_seckill_relogin_task')
 )
 
 
@@ -101,7 +67,13 @@ CELERY_ROUTES = {
                                           'routing_key': 'start_add_task'},
 
     'celery_tasks.jd_seckill.jd_seckill.jd_seckill_task': {'queue': 'jd_seckill_task',
-                                        'routing_key': 'jd_seckill_task'}
+                                        'routing_key': 'jd_seckill_task'},
+    'celery_tasks.jd_seckill.jd_seckill.jd_seckill_presell': {'queue': 'jd_seckill_presell',
+                                                           'routing_key': 'jd_seckill_presell'},
+    'celery_tasks.jd_seckill.jd_seckill.jd_seckill_timer_relogin': {'queue': 'jd_seckill_timer_relogin',
+                                                           'routing_key': 'jd_seckill_timer_relogin'},
+    'celery_tasks.jd_seckill.jd_seckill.jd_seckill_relogin_task': {'queue': 'jd_seckill_relogin_task',
+                                                           'routing_key': 'jd_seckill_relogin_task'}
 }
 
 MONGODB_SETTINGS = "mongodb://jtyd_grab01:fdsfsaddfdfd@202.197.237.29:28018/JD"

@@ -13,7 +13,7 @@ from dispatch.jd_seckill.proxy_pool import ProxyStore
 
 class jd_seckill_dispatch:
 
-    def __init__(self, ppool):
+    def __init__(self):
         self.dbc = class_MongoDB.MongoClient(uri, class_logger.getLogger('MongoDB_Users'), 'JD')
         self.dbc.setUnique('Users', 'username')
         cl = class_logger
@@ -21,7 +21,7 @@ class jd_seckill_dispatch:
         self.logger = cl.getLogger('Class_Login')
 
         # 连接池
-        self.Ppool = ppool
+        # self.Ppool = ppool
 
     def insertUsers(self, username, password):
         i = {
@@ -44,13 +44,13 @@ class jd_seckill_dispatch:
             self.dbc.insert_one('Users', i)
             return i
 
-    def jd_user_login(self, username, password):
+    def jd_user_login(self, username, password, netproxy):
         # 保存用户
         user = self.insertUsers(username, password)
 
         # 用户登录
         lg = class_login.Login()
-        lret = lg.login(username, password, self.Ppool.getProxy())
+        lret = lg.login(username, password, netproxy)
 
         if lret['state'] == 200:
             user['eid'] = lret['eid']
@@ -58,7 +58,7 @@ class jd_seckill_dispatch:
             user['last_refresh'] = time.time()
             user['cookies'] = lret['cookies']
             self.dbc.update('Users',{'username': user['username']}, user)
-            self.dbc.update('Users', {'username': user['username']}, {'status': 4})
+            self.dbc.update('Users', {'username': user['username']}, {'status': 1})
             self.logger.info('登录成功，username：'+username)
         else:
             user['alive'] = 0
@@ -67,13 +67,14 @@ class jd_seckill_dispatch:
             self.dbc.update('Users', {'username': user['username']}, {'status': 2})
             return {"code": "Fail", "msg": '登录失败，username：' + username}
 
-    def jd_seckill_deal_user(self, username, password, skuid):
+
+    def jd_seckill_deal_user(self, username, password, skuid, netproxy):
         # 保存用户
         user = self.insertUsers(username, password)
 
         # 用户登录
         lg = class_login.Login()
-        lret = lg.login(username, password, self.Ppool.getProxy())
+        lret = lg.login(username, password, netproxy)
 
         if lret['state'] == 200:
             user['eid'] = lret['eid']
@@ -92,7 +93,7 @@ class jd_seckill_dispatch:
         Cookies = base64.b64decode(lret['cookies']).decode()
 
         # 检查用户是否登录 更新状态
-        isLoginRet = lg.isLogin(Cookies, self.Ppool.getProxy())
+        isLoginRet = lg.isLogin(Cookies, netproxy)
         if lret['state'] == 200:
             self.dbc.update('Users', {'username': user['username']}, {'last_refresh': time.time()})
             self.logger.info('更新成功，username：' + username)
@@ -105,33 +106,35 @@ class jd_seckill_dispatch:
         # 提交收获地址
         cs = class_consign.Consign()
         addr_id = ''.join(random.sample(string.ascii_letters + string.digits, 8))
-        cs.add(addr_id, Cookies, self.Ppool.getProxy())
-        add = cs.getAddressList(Cookies, self.Ppool.getProxy())
+        cs.add(addr_id, Cookies, netproxy)
+        add = cs.getAddressList(Cookies, netproxy)
         print(add)
         self.logger.info(add)
-        cs.setOnekey(Cookies,add[1]['id'], self.Ppool.getProxy())
+        cs.setOnekey(Cookies,add[1]['id'], netproxy)
 
         # 预约抢购
         ps = class_presell.Presell()
-        myPresell = ps.getMyPresell(Cookies, self.Ppool.getProxy())
+        myPresell = ps.getMyPresell(Cookies, netproxy)
         print(myPresell)
         self.logger.info(myPresell)
 
-        psinfo = ps.goPresellInfo(Cookies, skuid, self.Ppool.getProxy())
+        psinfo = ps.goPresellInfo(Cookies, skuid, netproxy)
         print(psinfo)
         self.logger.info(psinfo)
 
-        goPresell = ps.goPresell(Cookies, skuid,'https:' + psinfo['url'], self.Ppool.getProxy())
+        goPresell = ps.goPresell(Cookies, skuid,'https:' + psinfo['url'], netproxy)
         print(goPresell)
         self.logger.info(goPresell)
 
-        getMyPresell = ps.getMyPresell(Cookies, self.Ppool.getProxy())
+        getMyPresell = ps.getMyPresell(Cookies, netproxy)
         print(getMyPresell)
         self.logger.info(getMyPresell)
 
         self.dbc.update('Users', {'username': user['username']}, {'status': 1})
 
         return {"code": "Success", "msg": "抢购用户初始化成功"}
+
+
 
 
 
