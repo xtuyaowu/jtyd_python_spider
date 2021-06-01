@@ -34,7 +34,7 @@ setuptools==36.2.7
 six==1.10.0
 SQLAlchemy==1.1.13
 tzlocal==1.4
-urllib3==1.22
+urllib3==1.26.5
 vine==1.1.4
 Werkzeug==0.12.2
 wheel==0.29.0
