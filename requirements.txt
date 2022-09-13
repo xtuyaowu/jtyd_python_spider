@@ -1,7 +1,7 @@
 bs4==0.0.1
 PyYAML==3.12
 rsa==3.4.2
-flower==0.9.1
+flower==1.2.0
 amqp==2.2.1
 APScheduler==3.3.1
 billiard==3.5.0.3
